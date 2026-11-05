@@ -27,7 +27,11 @@ class Portfolio:
         held = self.current_positions[s]
 
         if event.signal_type == "LONG" and held == 0:
-            self.events.put(OrderEvent(s, "MKT", self.quantity, "BUY"))
+            price = self.bars.get_latest_bars_values(s, "close")[-1]
+            affordable = int(self.current_cash // price)
+            qty = min(self.quantity, affordable)
+            if qty > 0:
+                self.events.put(OrderEvent(s, "MKT", qty, "BUY"))
 
         elif event.signal_type == "EXIT" and held > 0:
             self.events.put(OrderEvent(s, "MKT", held, "SELL"))
